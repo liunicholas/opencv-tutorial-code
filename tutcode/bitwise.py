@@ -30,3 +30,7 @@ cv2.waitKey(0)
 bitwiseNot = cv2.bitwise_not(circle)
 cv2.imshow("NOT", bitwiseNot)
 cv2.waitKey(0)
+
+bitwiseNot = cv2.bitwise_not(rectangle)
+cv2.imshow("NOT", bitwiseNot)
+cv2.waitKey(0)
