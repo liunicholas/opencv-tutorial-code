@@ -1,4 +1,4 @@
-#instead of print statement
+#to make it compatiblw with python 2
 from __future__ import print_function
 #parse command line argumnts
 import argparse
