@@ -3,6 +3,30 @@ import argparse
 import numpy as np
 import cv2
 
+#argparse to get and save the images
+def chapter3():
+    #you will have to change the file path of the default images
+    ap = argparse.ArgumentParser()
+    #default for image1 is pepper
+    ap.add_argument("--image1", required = False,
+        default = "/Users/nicholasliu/Documents/adhoncs/Q1tutorial/beginningAssignment/pepper.png",
+        help = "Preferably use the default image")
+    #default for image1 is pepper
+    ap.add_argument("--image2", required = False,
+        default = "/Users/nicholasliu/Documents/adhoncs/Q1tutorial/beginningAssignment/math.png",
+        help = "Put homework to convert to black and white")
+
+    images = vars(ap.parse_args())
+    # print(images)
+    image1 = cv2.imread(images["image1"])
+    image2 = cv2.imread(images["image2"])
+
+    cv2.imshow("Image1", image1)
+    cv2.imshow("Image2", image2)
+    cv2.waitKey()
+
+    return image1, image2
+
 #makes parts of pepper yellow
 def chapter4(image1):
     #Chapter 4 changing pixel colors
@@ -103,27 +127,8 @@ def chapter8(image1):
     cv2.waitKey()
 
 def main():
-    #Chapter 3 loading images
-    #you will have to change the file path of the default images
-    ap = argparse.ArgumentParser()
-    #default for image1 is pepper
-    ap.add_argument("--image1", required = False,
-        default = "/Users/nicholasliu/Documents/adhoncs/Q1tutorial/beginningAssignment/pepper.png",
-        help = "Preferably use the default image")
-    #default for image1 is pepper
-    ap.add_argument("--image2", required = False,
-        default = "/Users/nicholasliu/Documents/adhoncs/Q1tutorial/beginningAssignment/math.png",
-        help = "Put homework to convert to black and white")
 
-    images = vars(ap.parse_args())
-    # print(images)
-    image1 = cv2.imread(images["image1"])
-    image2 = cv2.imread(images["image2"])
-
-    cv2.imshow("Image1", image1)
-    cv2.imshow("Image2", image2)
-    cv2.waitKey()
-
+    image1, image2 = chapter3()
     # chapter4(image1)
     # chapter5(image1)
     # chapter6(image1)
