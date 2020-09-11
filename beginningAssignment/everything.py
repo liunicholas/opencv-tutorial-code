@@ -62,6 +62,13 @@ def chapter5(image1):
 
     cv2.waitKey()
 
+#what pepper looks like in australia
+def chapter6(image1):
+    #flips image across x axis
+    flippedImg = cv2.flip(image1, 0)
+    cv2.imshow("Pepper in Australia", flippedImg)
+    cv2.waitKey()
+
 def main():
     #Chapter 3 loading images
     #you will have to change the file path of the default images
@@ -84,7 +91,8 @@ def main():
     cv2.imshow("Image2", image2)
     cv2.waitKey()
 
-    chapter4(image1)
-    chapter5(image1)
+    # chapter4(image1)
+    # chapter5(image1)
+    # chapter6(image1)
 
 main()
