@@ -75,11 +75,30 @@ def chapter6(image1):
 
     cv2.waitKey()
 
+    #create matrix of 100s in the same dimensions as the image
     matrix = np.ones(imageCopy2.shape, dtype = "uint8") * 100
     #increase all pixels by 100
     imageCopy2 = cv2.add(imageCopy2, matrix)
     cv2.imshow("Pepper after she runs out of battery and goes to robot heaven",
         imageCopy2)
+
+    cv2.waitKey()
+
+#blur just pepper's face for when she testifies against her human owners
+def chapter8(image1):
+    imageCopy = image1.copy()
+    blurredImage = cv2.blur(imageCopy, (50, 50))
+
+    #https://stackoverflow.com/questions/52365190/blur-a-specific-part-of-an-image
+    #https://numpy.org/doc/stable/reference/generated/numpy.where.html
+
+    #create mask with the circle on pepper's face
+    mask = np.zeros(imageCopy.shape[:2], dtype = "uint8")
+    mask = cv2.circle(imageCopy, (623,181), 125, (255,255,255), -1)
+    #where() has three parameters, if the first paramter is true,
+    #the second parameter is used, and vice versa
+    finalBlurred = np.where(mask==np.array([255,255,255]), blurredImage, imageCopy)
+    cv2.imshow("Anonymous Pepper", finalBlurred)
 
     cv2.waitKey()
 
@@ -90,7 +109,7 @@ def main():
     #default for image1 is pepper
     ap.add_argument("--image1", required = False,
         default = "/Users/nicholasliu/Documents/adhoncs/Q1tutorial/beginningAssignment/pepper.png",
-        help = "Put some random image or use the default image")
+        help = "Preferably use the default image")
     #default for image1 is pepper
     ap.add_argument("--image2", required = False,
         default = "/Users/nicholasliu/Documents/adhoncs/Q1tutorial/beginningAssignment/math.png",
@@ -106,7 +125,8 @@ def main():
     cv2.waitKey()
 
     # chapter4(image1)
-    chapter5(image1)
-    chapter6(image1)
+    # chapter5(image1)
+    # chapter6(image1)
+    chapter8(image1)
 
 main()
