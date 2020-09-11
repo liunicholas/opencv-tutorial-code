@@ -4,3 +4,4 @@ Chapter 4: I retrieved pixels to find the average color and then set pixels to b
 
 Chapter 5: I used the rectangle and circle drawing functions from opencv
 
+Chapter 6: I use the opencv flip() function to reflect the image
