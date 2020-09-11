@@ -48,25 +48,39 @@ def chapter5(image1):
     black = (0,0,0)
     yellow = (0,255,255)
 
+    imageCopy = image1.copy()
+
     #black circle to cover her face
-    cv2.circle(image1, (623,181), 125, black, -1)
+    cv2.circle(imageCopy, (623,181), 125, black, -1)
 
     #yellow eyes
-    cv2.circle(image1, (574,164), 20, yellow, -1)
-    cv2.circle(image1, (678,157), 20, yellow, -1)
+    cv2.circle(imageCopy, (574,164), 20, yellow, -1)
+    cv2.circle(imageCopy, (678,157), 20, yellow, -1)
 
     #yellow mouth
-    cv2.rectangle(image1, (632, 233), (652, 240), yellow, 2)
+    cv2.rectangle(imageCopy, (632, 233), (652, 240), yellow, 2)
 
-    cv2.imshow("better pepper", image1)
+    cv2.imshow("better pepper", imageCopy)
 
     cv2.waitKey()
 
-#what pepper looks like in australia
+#what pepper looks like in australia and in robot heaven
 def chapter6(image1):
+    imageCopy = image1.copy()
+    imageCopy2 = image1.copy()
+
     #flips image across x axis
-    flippedImg = cv2.flip(image1, 0)
+    flippedImg = cv2.flip(imageCopy, 0)
     cv2.imshow("Pepper in Australia", flippedImg)
+
+    cv2.waitKey()
+
+    matrix = np.ones(imageCopy2.shape, dtype = "uint8") * 100
+    #increase all pixels by 100
+    imageCopy2 = cv2.add(imageCopy2, matrix)
+    cv2.imshow("Pepper after she runs out of battery and goes to robot heaven",
+        imageCopy2)
+
     cv2.waitKey()
 
 def main():
@@ -92,7 +106,7 @@ def main():
     cv2.waitKey()
 
     # chapter4(image1)
-    # chapter5(image1)
-    # chapter6(image1)
+    chapter5(image1)
+    chapter6(image1)
 
 main()
