@@ -2,6 +2,7 @@
 import argparse
 import numpy as np
 import cv2
+import mahotas
 
 #argparse to get and save the images
 def chapter3():
@@ -69,13 +70,13 @@ def chapter4(image1):
 #draws a new face for pepper
 def chapter5(image1):
     #define some colors
-    black = (0,0,0)
+    white = (255,255,255)
     yellow = (0,255,255)
 
     imageCopy = image1.copy()
 
     #black circle to cover her face
-    cv2.circle(imageCopy, (623,181), 125, black, -1)
+    cv2.circle(imageCopy, (623,181), 125, white, -1)
 
     #yellow eyes
     cv2.circle(imageCopy, (574,164), 20, yellow, -1)
@@ -126,12 +127,203 @@ def chapter8(image1):
 
     cv2.waitKey()
 
+#theshold the homework to convert it to black and white and be more legible
+def chapter9(image2):
+    image2Copy = image2.copy()
+
+    #first convert to grey scale and blur to reduce noise and make
+    #edge detection better
+    greyImg = cv2.cvtColor(image2Copy, cv2.COLOR_BGR2GRAY)
+    #just kiding blurring makes it worse
+    # slightlyBlurredImg = cv2.GaussianBlur(greyImg, (5, 5), 0)
+
+    #gets the best threhold for the image to convert it to binary
+    threshold = mahotas.thresholding.otsu(greyImg)
+
+    img = greyImg
+    #converts anything relatively dark to be black
+    img[img > threshold] = 0
+    #converts everything else to white
+    img[img != 0] = 255
+
+    cv2.imshow("B&W Homework", img)
+
+    cv2.waitKey()
+
+    #retunr the black and white image for use in the next function
+    return img
+
+#finds the edges and then crops the background of the homework using edge detection
+def chapter10and11(bAwImg):
+
+    #finds the edges in the image
+    #this edge detection didnt work very well
+    #too sensitive
+    # edgedImg = cv2.Canny(bAwImg, 5, 250)
+    # cv2.imshow("canny edge", edgedImg)
+
+    image = bAwImg
+    #image, data type, and then derivatives
+    #1,0 for vertical edges
+    #0,1 for horizontal edges
+    #this works better for edges
+    sobelX = cv2.Sobel(image, cv2.CV_64F, 1, 0)
+    sobelY = cv2.Sobel(image, cv2.CV_64F, 0, 1)
+    sobelX = np.uint8(np.absolute(sobelX))
+    sobelY = np.uint8(np.absolute(sobelY))
+
+    #or so that all edges are included
+    comb = cv2.bitwise_or(sobelX, sobelY)
+    #reverse it
+    comb = cv2.bitwise_not(comb)
+    image = comb.copy()
+
+    #LOOP THROUGH MANUALLY
+    h,w = comb.shape[:2]
+
+    #left edge finder
+    leftCounter = 0
+    leftTotal = 0
+    for y in range(h):
+        #try is to find the other side of an edge
+        TRY = False
+        #found is for confirming a find
+        FOUND = False
+        for x in range(w):
+            #goes downwards toward the right
+            color = comb[y-1,x-1]
+            #if it finds a black, it will be ready to search
+            if color > 240 and TRY == False and FOUND == False:
+                TRY = True
+                print(x-1)
+            if TRY == True and FOUND == False:
+                #will search for the white part of the line to see if it is indeed an edge
+                for n in range(5):
+                    if x+n < w:
+                        color = comb[y-1,x+n]
+                        if color < 240:
+                            FOUND = True
+                            leftCounter += x-1
+                            leftTotal += 1.0
+                            break
+            #once the edge is found, this loop ends
+            if FOUND == True:
+                continue
+
+    leftAvg = leftCounter/leftTotal
+    print(leftAvg)
+
+    #right edge finder
+    rightCounter = 0
+    rightTotal = 0
+    for y in range(h):
+        #try is to find the other side of an edge
+        TRY = False
+        #found is for confirming a find
+        FOUND = False
+        for x in range(w):
+            #goes downwards toward the left
+            color = comb[y-1,w-x-1]
+            #if it finds a black, it will be ready to search
+            if color > 240 and TRY == False and FOUND == False:
+                TRY = True
+            if TRY == True and FOUND == False:
+                #will search for the white part of the line to see if it is indeed an edge
+                for n in range(5):
+                    if x-n > 0:
+                        color = comb[y-1,x-n-1]
+                        if color < 240:
+                            FOUND = True
+                            rightCounter += w-x-1
+                            rightTotal += 1.0
+                            break
+            #once the edge is found, this loop ends
+            if FOUND == True:
+                continue
+
+    rightAvg = rightCounter/rightTotal
+    print(rightAvg)
+
+    #top edge finder
+    topCounter = 0
+    topTotal = 0
+    for x in range(w):
+        #try is to find the other side of an edge
+        TRY = False
+        #found is for confirming a find
+        FOUND = False
+        for y in range(h):
+            #goes rightwards toward the bottom
+            color = comb[y-1,x-1]
+            #if it finds a black, it will be ready to search
+            if color > 240 and TRY == False and FOUND == False:
+                TRY = True
+            if TRY == True and FOUND == False:
+                #will search for the white part of the line to see if it is indeed an edge
+                for n in range(5):
+                    if y+n < h:
+                        color = comb[y+n,x-1]
+                        if color < 240:
+                            FOUND = True
+                            topCounter += y-1
+                            topTotal += 1.0
+                            break
+            #once the edge is found, this loop ends
+            if FOUND == True:
+                continue
+
+    topAvg = topCounter/topTotal
+    print(topAvg)
+
+    #bottom edge finder
+    bottomCounter = 0
+    bottomTotal = 0
+    for x in range(w):
+        #try is to find the other side of an edge
+        TRY = False
+        #found is for confirming a find
+        FOUND = False
+        for y in range(h):
+            #goes rightwards toward the bottom
+            color = comb[h-y-1,x-1]
+            #if it finds a black, it will be ready to search
+            if color > 240 and TRY == False and FOUND == False:
+                TRY = True
+            if TRY == True and FOUND == False:
+                #will search for the white part of the line to see if it is indeed an edge
+                for n in range(5):
+                    if h-y-n > 0:
+                        color = comb[h-y-n-1,x-1]
+                        if color < 240:
+                            FOUND = True
+                            bottomCounter += h-y-1
+                            bottomTotal += 1.0
+                            break
+            #once the edge is found, this loop ends
+            if FOUND == True:
+                continue
+
+    bottomAvg = bottomCounter/bottomTotal
+    print(bottomAvg)
+    # cv2.imshow("cropped homework", image)
+    #crops the image using the edges found
+    y2 = int(bottomAvg)
+    y1 = int(topAvg)
+    x1 = int(leftAvg)
+    x2 = int(rightAvg)
+    croppedImg = image[y1:y2, x1:x2]
+    cv2.imshow("cropped homework", croppedImg)
+
+    cv2.waitKey()
+
 def main():
 
     image1, image2 = chapter3()
-    # chapter4(image1)
-    # chapter5(image1)
-    # chapter6(image1)
+    chapter4(image1)
+    chapter5(image1)
+    chapter6(image1)
     chapter8(image1)
+    bAwImg = chapter9(image2)
+    chapter10and11(bAwImg)
 
 main()
