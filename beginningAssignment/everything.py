@@ -176,6 +176,9 @@ def chapter10and11(bAwImg):
     comb = cv2.bitwise_or(sobelX, sobelY)
     #reverse it
     comb = cv2.bitwise_not(comb)
+    cv2.imshow("edges with sobel", comb)
+    cv2.waitKey()
+    
     image = comb.copy()
 
     #LOOP THROUGH MANUALLY
