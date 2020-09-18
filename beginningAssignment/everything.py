@@ -1,8 +1,12 @@
+#python 3.8
 #all the versions are the same as what the book says to download
 import argparse
 import numpy as np
 import cv2
 import mahotas
+from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
+from time import *
 
 #argparse to get and save the images
 def chapter3():
@@ -178,8 +182,10 @@ def chapter10and11(bAwImg):
     comb = cv2.bitwise_not(comb)
     cv2.imshow("edges with sobel", comb)
     cv2.waitKey()
-    
+
     image = comb.copy()
+
+    count1 = perf_counter()
 
     #LOOP THROUGH MANUALLY
     h,w = comb.shape[:2]
@@ -198,7 +204,7 @@ def chapter10and11(bAwImg):
             #if it finds a black, it will be ready to search
             if color > 240 and TRY == False and FOUND == False:
                 TRY = True
-                print(x-1)
+                # print(x-1)
             if TRY == True and FOUND == False:
                 #will search for the white part of the line to see if it is indeed an edge
                 for n in range(5):
@@ -214,7 +220,7 @@ def chapter10and11(bAwImg):
                 continue
 
     leftAvg = leftCounter/leftTotal
-    print(leftAvg)
+    print(f"left bound = {leftAvg}")
 
     #right edge finder
     rightCounter = 0
@@ -245,7 +251,7 @@ def chapter10and11(bAwImg):
                 continue
 
     rightAvg = rightCounter/rightTotal
-    print(rightAvg)
+    print(f"right bound = {rightAvg}")
 
     #top edge finder
     topCounter = 0
@@ -276,7 +282,7 @@ def chapter10and11(bAwImg):
                 continue
 
     topAvg = topCounter/topTotal
-    print(topAvg)
+    print(f"top bound = {topAvg}")
 
     #bottom edge finder
     bottomCounter = 0
@@ -307,7 +313,44 @@ def chapter10and11(bAwImg):
                 continue
 
     bottomAvg = bottomCounter/bottomTotal
-    print(bottomAvg)
+    print(f"bottom bound = {bottomAvg}")
+
+    count2 = perf_counter()
+
+    time = count2-count1
+    print(f"total time without multiprocessing: {time}")
+
+    #https://stackoverflow.com/questions/32404825/how-to-run-multiple-functions-at-same-time
+    executors_list = []
+
+    cs = [[comb, "top"],[comb, "bottom"],[comb, "left"],[comb, "right"]]
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        executors_list.append(executor.submit(edgeFind, cs[0]))
+        executors_list.append(executor.submit(edgeFind, cs[1]))
+        executors_list.append(executor.submit(edgeFind, cs[2]))
+        executors_list.append(executor.submit(edgeFind, cs[3]))
+
+    for x in executors_list:
+        print(x.result())
+
+    count3 = perf_counter()
+
+    time = count3-count2
+    print(f"total time with multithreading: {time}")
+
+    cs = [[comb, "top"],[comb, "bottom"],[comb, "left"],[comb, "right"]]
+    with Pool(processes=4, maxtasksperchild = 1) as pool:
+            results = pool.map(edgeFind, cs)
+            pool.close()
+            pool.join()
+
+    # print(results)
+
+    count4 = perf_counter()
+
+    time = count4-count3
+    print(f"total time with multitprocessing: {time}")
+
     # cv2.imshow("cropped homework", image)
     #crops the image using the edges found
     y2 = int(bottomAvg)
@@ -319,14 +362,158 @@ def chapter10and11(bAwImg):
 
     cv2.waitKey()
 
+def edgeFind(cs):
+    comb = cs[0]
+    side = cs[1]
+
+    h,w = comb.shape[:2]
+
+    if side=="left":
+        #left edge finder
+        leftCounter = 0
+        leftTotal = 0
+        for y in range(h):
+            #try is to find the other side of an edge
+            TRY = False
+            #found is for confirming a find
+            FOUND = False
+            for x in range(w):
+                #goes downwards toward the right
+                color = comb[y-1,x-1]
+                #if it finds a black, it will be ready to search
+                if color > 240 and TRY == False and FOUND == False:
+                    TRY = True
+                    #print(x-1)
+                if TRY == True and FOUND == False:
+                    #will search for the white part of the line to see if it is indeed an edge
+                    for n in range(5):
+                        if x+n < w:
+                            color = comb[y-1,x+n]
+                            if color < 240:
+                                FOUND = True
+                                leftCounter += x-1
+                                leftTotal += 1.0
+                                break
+                #once the edge is found, this loop ends
+                if FOUND == True:
+                    continue
+
+        leftAvg = leftCounter/leftTotal
+        print(f"left bound = {leftAvg}")
+
+        return leftAvg
+
+    if side=="right":
+        #right edge finder
+        rightCounter = 0
+        rightTotal = 0
+        for y in range(h):
+            #try is to find the other side of an edge
+            TRY = False
+            #found is for confirming a find
+            FOUND = False
+            for x in range(w):
+                #goes downwards toward the left
+                color = comb[y-1,w-x-1]
+                #if it finds a black, it will be ready to search
+                if color > 240 and TRY == False and FOUND == False:
+                    TRY = True
+                if TRY == True and FOUND == False:
+                    #will search for the white part of the line to see if it is indeed an edge
+                    for n in range(5):
+                        if x-n > 0:
+                            color = comb[y-1,x-n-1]
+                            if color < 240:
+                                FOUND = True
+                                rightCounter += w-x-1
+                                rightTotal += 1.0
+                                break
+                #once the edge is found, this loop ends
+                if FOUND == True:
+                    continue
+
+        rightAvg = rightCounter/rightTotal
+        print(f"right bound = {rightAvg}")
+
+        return rightAvg
+
+    if side=="top":
+        #top edge finder
+        topCounter = 0
+        topTotal = 0
+        for x in range(w):
+            #try is to find the other side of an edge
+            TRY = False
+            #found is for confirming a find
+            FOUND = False
+            for y in range(h):
+                #goes rightwards toward the bottom
+                color = comb[y-1,x-1]
+                #if it finds a black, it will be ready to search
+                if color > 240 and TRY == False and FOUND == False:
+                    TRY = True
+                if TRY == True and FOUND == False:
+                    #will search for the white part of the line to see if it is indeed an edge
+                    for n in range(5):
+                        if y+n < h:
+                            color = comb[y+n,x-1]
+                            if color < 240:
+                                FOUND = True
+                                topCounter += y-1
+                                topTotal += 1.0
+                                break
+                #once the edge is found, this loop ends
+                if FOUND == True:
+                    continue
+
+        topAvg = topCounter/topTotal
+        print(f"top bound = {topAvg}")
+
+        return topAvg
+
+    if side=="bottom":
+        #bottom edge finder
+        bottomCounter = 0
+        bottomTotal = 0
+        for x in range(w):
+            #try is to find the other side of an edge
+            TRY = False
+            #found is for confirming a find
+            FOUND = False
+            for y in range(h):
+                #goes rightwards toward the bottom
+                color = comb[h-y-1,x-1]
+                #if it finds a black, it will be ready to search
+                if color > 240 and TRY == False and FOUND == False:
+                    TRY = True
+                if TRY == True and FOUND == False:
+                    #will search for the white part of the line to see if it is indeed an edge
+                    for n in range(5):
+                        if h-y-n > 0:
+                            color = comb[h-y-n-1,x-1]
+                            if color < 240:
+                                FOUND = True
+                                bottomCounter += h-y-1
+                                bottomTotal += 1.0
+                                break
+                #once the edge is found, this loop ends
+                if FOUND == True:
+                    continue
+
+        bottomAvg = bottomCounter/bottomTotal
+        print(f"bottom bound = {bottomAvg}")
+
+        return bottomAvg
+
 def main():
 
     image1, image2 = chapter3()
-    chapter4(image1)
-    chapter5(image1)
-    chapter6(image1)
-    chapter8(image1)
+    # chapter4(image1)
+    # chapter5(image1)
+    # chapter6(image1)
+    # chapter8(image1)
     bAwImg = chapter9(image2)
     chapter10and11(bAwImg)
 
-main()
+if __name__ == '__main__':
+	main()
