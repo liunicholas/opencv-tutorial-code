@@ -330,8 +330,8 @@ def chapter10and11(bAwImg):
         executors_list.append(executor.submit(edgeFind, cs[2]))
         executors_list.append(executor.submit(edgeFind, cs[3]))
 
-    for x in executors_list:
-        print(x.result())
+    # for x in executors_list:
+    #     print(x.result())
 
     count3 = perf_counter()
 
@@ -508,12 +508,13 @@ def edgeFind(cs):
 def main():
 
     image1, image2 = chapter3()
-    # chapter4(image1)
-    # chapter5(image1)
-    # chapter6(image1)
-    # chapter8(image1)
+    chapter4(image1)
+    chapter5(image1)
+    chapter6(image1)
+    chapter8(image1)
     bAwImg = chapter9(image2)
     chapter10and11(bAwImg)
 
+#must use this for multitprocessing
 if __name__ == '__main__':
 	main()
